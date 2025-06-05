@@ -288,7 +288,7 @@ export const MoveHandlers = {
 
   'Surf': (scene) => {
     scene.addDashAttack('Surf', {
-      spriteKey: 'bubble', // use wave sprite if you have one
+      spriteKey: 'fireSpin', // use wave sprite if you have one
       width: 200,
       height: 60,
       damage: 4,
@@ -305,11 +305,11 @@ export const MoveHandlers = {
     scene.orbitalData = {
       count: 2,
       damage: 2,
-      size: 0.35,
+      size: 0.15,
       speed: 0.015,
       angleOffset: 0,
       radius: 40,
-      spriteKey: 'bubble' // use shell if you have one
+      spriteKey: 'shell' // use shell if you have one
     };
 
     for (let i = 0; i < scene.orbitalData.count; i++) {
@@ -331,7 +331,7 @@ export const MoveHandlers = {
 
   'Water Pulse': (scene) => {
     scene.addAttack('Water Pulse', {
-      spriteKey: 'bubble', // should be wave or pulse
+      spriteKey: 'ember', // should be wave or pulse
       range: 200,
       cone: true,
       damage: 1,

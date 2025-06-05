@@ -46,8 +46,13 @@ export class GameScene extends Phaser.Scene {
       this.load.image('fireSpin', 'assets/projectiles/fireSpin.png');
       this.load.image('willOWisp', 'assets/projectiles/willo.png');
 
+      //squirtle moves
       this.load.image('bubble', 'assets/projectiles/bubble.png');
+      this.load.image('shell', 'assets/projectiles/shell.png');
 
+
+      //maps
+      this.load.image('background', 'assets/backgrounds/westernCave.png');
 
       this.load.image('xpOrb', 'assets/ui/xpOrb.png'); // use any small icon or placeholder
     }
@@ -128,6 +133,10 @@ for (const name in this.moveTimers) {
     // }
       
     create() {
+      this.background = this.add.tileSprite(0, 0, 2000, 2000, 'background').setOrigin(0);
+      this.background.setDepth(-6);
+      this.background.setScrollFactor(1); // or try 0.5 for parallax effect
+
         this.playerFrames = ['idle', 'step1', 'step2'].map(
             pose => `${this.selectedPokemon.toLowerCase()}_${pose}`
         );
