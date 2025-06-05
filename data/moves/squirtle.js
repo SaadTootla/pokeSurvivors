@@ -6,6 +6,7 @@ export const SQUIRTLE = {
     {
       name: 'Bubble',
       description: 'Fires a quick bubble that pushes enemies back.',
+      isBasic: true,
       apply: (scene) => MoveHandlers['Bubble'](scene)
     },
     {

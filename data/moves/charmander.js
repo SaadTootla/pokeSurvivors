@@ -6,6 +6,7 @@ export const CHARMANDER = {
     {
       name: 'Ember',
       description: 'Fires a quick fireball that burns enemies over time.',
+      isBasic: true,
       apply: (scene) => MoveHandlers['Ember'](scene)
     },
     // {

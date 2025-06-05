@@ -1,6 +1,5 @@
 export const MoveHandlers = {
     'Ember': (scene) => {
-      scene.registerRecurringMove('Ember', () => {
         const target = scene.getClosestEnemy();
         if (!target) return;
         const bullet = scene.bullets.create(scene.player.x, scene.player.y, 'ember');
@@ -8,9 +7,8 @@ export const MoveHandlers = {
         bullet.damage = 1;
         bullet.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(-100, 100));
         scene.physics.moveToObject(bullet, target, 300);
-      }, 1000);
-    },
-  
+      },
+
     'Will-O-Wisp': (scene) => {
       // Clear old orbitals if needed
       scene.orbitals?.clear(true, true);
@@ -18,7 +16,7 @@ export const MoveHandlers = {
   
       scene.orbitalData = {
         count: 3,
-        damage: 1,
+        damage: 100,
         size: 0.3,
         speed: 0.02,
         angleOffset: 0,
@@ -252,9 +250,10 @@ export const MoveHandlers = {
         range: 200
       });
     },
+
+    //squirtle moves
   'Bubble': (scene) => {
     // Auto-attack already does this, so for upgrades just ensure it's recurring
-    scene.registerRecurringMove('Bubble', () => {
       const target = scene.getClosestEnemy();
       if (!target) return;
 
@@ -262,8 +261,7 @@ export const MoveHandlers = {
       bullet.setScale(0.2);
       bullet.isBubble = true;
       scene.physics.moveToObject(bullet, target, 200);
-    }, 1000);
-  },
+    },
 
   'Bubblebeam': (scene) => {
     scene.registerRecurringMove('Bubblebeam', () => {
@@ -355,5 +353,127 @@ export const MoveHandlers = {
         scene.playerSpeed *= 1.1;
       }
     });
+  },
+
+  // bulbasaur moves
+'Razor Leaf': (scene) => {
+  // Prevent overlap if it's already active
+  if (scene.activeMoves.includes('Razor Leaf_Active')) return;
+
+  // Mark it as active
+  scene.activeMoves.push('Razor Leaf_Active');
+
+  scene.orbitals?.clear(true, true);
+  scene.orbitals = scene.physics.add.group();
+
+  scene.orbitalData = {
+    count: 3,
+    damage: 5,
+    size: 0.3,
+    speed: 0.02,
+    angleOffset: 0,
+    radius: 55,
+    spriteKey: 'razorLeaf'
+  };
+
+  for (let i = 0; i < scene.orbitalData.count; i++) {
+    const orb = scene.physics.add.sprite(scene.player.x, scene.player.y, scene.orbitalData.spriteKey);
+    orb.setScale(scene.orbitalData.size);
+    orb.damage = scene.orbitalData.damage;
+    orb.setOrigin(0.5);
+    orb.hitEnemies = new Set();
+    scene.orbitals.add(orb);
+  }
+
+  // Remove orbitals after 5 seconds and allow re-use
+  scene.time.delayedCall(5000, () => {
+    scene.orbitals?.clear(true, true);
+    scene.activeMoves = scene.activeMoves.filter(name => name !== 'Razor Leaf_Active');
+  });
+
+  // Recurring recast every 2 seconds
+  scene.registerRecurringMove('Razor Leaf', () => {
+    MoveHandlers['Razor Leaf'](scene);
+  }, 2000);
+},
+
+
+
+
+  'Leech Seed': (scene) => {
+    const target = scene.getClosestEnemy();
+    if (!target) return;
+
+    const seed = scene.physics.add.sprite(scene.player.x, scene.player.y, 'leechSeed1');
+    seed.setScale(0.2);
+    scene.physics.moveToObject(seed, target, 300);
+
+    scene.physics.add.overlap(seed, scene.enemies, (s, enemy) => {
+      if (!enemy.active) return;
+      s.destroy();
+
+      const leech = scene.add.sprite(enemy.x, enemy.y, 'leechSeedCloud');
+      leech.setAlpha(0.5);
+      leech.setScale(0.5);
+
+      scene.physics.world.enable(leech);
+      leech.body.setAllowGravity(false);
+      leech.body.setImmovable(true);
+
+      const leechTimer = scene.time.addEvent({
+        delay: 500,
+        repeat: 5,
+        callback: () => {
+          scene.enemies.children.each(e => {
+            if (e.active && Phaser.Math.Distance.Between(e.x, e.y, leech.x, leech.y) < 80) {
+              e.hp -= 1;
+              scene.playerHP += 1;
+            }
+          });
+        },
+        callbackScope: scene
+      });
+
+      scene.time.delayedCall(3000, () => {
+        leech.destroy();
+        leechTimer.remove(false);
+      });
+    });
+
+    scene.registerRecurringMove('Leech Seed', () => {
+      MoveHandlers['Leech Seed'](scene);
+    }, 5000);
+  },
+
+  'Sapling Swarm': (scene) => {
+    const spawnHelper = () => {
+      const target = scene.getClosestEnemy();
+      if (!target) return;
+
+      const sapling = scene.physics.add.sprite(target.x + Phaser.Math.Between(-40, 40), target.y + Phaser.Math.Between(-40, 40), 'sunkern');
+      sapling.setScale(0.2);
+      sapling.hp = 3;
+
+      const attackTimer = scene.time.addEvent({
+        delay: 1000,
+        repeat: 2,
+        callback: () => {
+          scene.enemies.children.each(enemy => {
+            if (!enemy.active || !sapling.active) return;
+            if (Phaser.Math.Distance.Between(enemy.x, enemy.y, sapling.x, sapling.y) < 60) {
+              enemy.hp -= 1;
+            }
+          });
+        }
+      });
+
+      scene.time.delayedCall(3000, () => {
+        sapling.destroy();
+        attackTimer.remove(false);
+      });
+    };
+
+    spawnHelper();
+    scene.registerRecurringMove('Sapling Swarm', spawnHelper, 7000);
   }
 }
