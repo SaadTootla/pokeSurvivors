@@ -251,6 +251,109 @@ export const MoveHandlers = {
         burn: true,
         range: 200
       });
+    },
+  'Bubble': (scene) => {
+    // Auto-attack already does this, so for upgrades just ensure it's recurring
+    scene.registerRecurringMove('Bubble', () => {
+      const target = scene.getClosestEnemy();
+      if (!target) return;
+
+      const bullet = scene.bullets.create(scene.player.x, scene.player.y, 'bubble');
+      bullet.setScale(0.2);
+      bullet.isBubble = true;
+      scene.physics.moveToObject(bullet, target, 200);
+    }, 1000);
+  },
+
+  'Bubblebeam': (scene) => {
+    scene.registerRecurringMove('Bubblebeam', () => {
+      if (!scene.player.active) return;
+
+      const angleToEnemy = (enemy) =>
+        Phaser.Math.Angle.Between(scene.player.x, scene.player.y, enemy.x, enemy.y);
+
+      const target = scene.getClosestEnemy();
+      if (!target) return;
+
+      const baseAngle = angleToEnemy(target);
+      [-0.2, 0, 0.2].forEach(offset => {
+        const bullet = scene.bullets.create(scene.player.x, scene.player.y, 'bubble');
+        bullet.setScale(0.2);
+        bullet.isBubble = true;
+        const angle = baseAngle + offset;
+        scene.physics.velocityFromRotation(angle, 300, bullet.body.velocity);
+      });
+    }, 2000);
+  },
+
+  'Surf': (scene) => {
+    scene.addDashAttack('Surf', {
+      spriteKey: 'bubble', // use wave sprite if you have one
+      width: 200,
+      height: 60,
+      damage: 4,
+      speed: 600,
+      knockback: true,
+      cooldown: 5000
+    });
+  },
+
+  'Withdraw': (scene) => {
+    scene.orbitals?.clear(true, true);
+    scene.orbitals = scene.physics.add.group();
+
+    scene.orbitalData = {
+      count: 2,
+      damage: 2,
+      size: 0.35,
+      speed: 0.015,
+      angleOffset: 0,
+      radius: 40,
+      spriteKey: 'bubble' // use shell if you have one
+    };
+
+    for (let i = 0; i < scene.orbitalData.count; i++) {
+      const orb = scene.physics.add.sprite(scene.player.x, scene.player.y, scene.orbitalData.spriteKey);
+      orb.setScale(scene.orbitalData.size);
+      orb.damage = scene.orbitalData.damage;
+      scene.orbitals.add(orb);
+      scene.physics.add.overlap(orb, scene.enemies, (orb, enemy) => {
+        if (!enemy.active) return;
+        enemy.hp -= orb.damage;
+        orb.destroy();
+      });
     }
-  };
-  
+
+    scene.registerRecurringMove('Withdraw', () => {
+      MoveHandlers['Withdraw'](scene);
+    }, 7000);
+  },
+
+  'Water Pulse': (scene) => {
+    scene.addAttack('Water Pulse', {
+      spriteKey: 'bubble', // should be wave or pulse
+      range: 200,
+      cone: true,
+      damage: 1,
+      effect: (enemy) => {
+        enemy.stunned = true;
+        scene.time.delayedCall(1500, () => {
+          if (enemy.active) enemy.stunned = false;
+        });
+      },
+      cooldown: 5000
+    });
+  },
+
+  'Rain Dance': (scene) => {
+    scene.addAura('Rain Dance', {
+      radius: 300,
+      effect: (enemy) => {
+        enemy.speed *= 0.7;
+      },
+      boostSelf: () => {
+        scene.playerSpeed *= 1.1;
+      }
+    });
+  }
+}
