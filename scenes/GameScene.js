@@ -55,6 +55,10 @@ export class GameScene extends Phaser.Scene {
       this.load.image('background', 'assets/backgrounds/westernCave.png');
 
       this.load.image('xpOrb', 'assets/ui/xpOrb.png'); // use any small icon or placeholder
+
+      //music
+      this.load.audio('song1', 'assets/audio/planetWisp.m4a');
+      this.load.audio('song2', 'assets/audio/pmd1.m4a');
     }
 
     levelUp() {
@@ -125,12 +129,8 @@ for (const name in this.moveTimers) {
   }
 }
       }
-      
-    // clearUpgradeMenu() {
-    //     this.upgradeMenuGroup.clear(true, true);
-    //     this.upgradeMenuVisible = false;
-    //     this.physics.resume();
-    // }
+
+
       
     create() {
       this.background = this.add.tileSprite(0, 0, 2000, 2000, 'background').setOrigin(0);
@@ -288,8 +288,38 @@ this.cameras.main.setBounds(0, 0, 2000, 2000);
 this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 this.levelText.setScrollFactor(0);
 
+let music1, music2;
+let currentSong = 1;
 
+function playMusic(scene) {
+  const pickFirst = Phaser.Math.Between(0, 1);
+  currentSong = pickFirst ? 1 : 2;
+
+  playNext(scene);
+}
+
+function playNext(scene) {
+  if (currentSong === 1) {
+    music1 = scene.sound.add('song1', {volume: 0.4});
+    music1.play();
+    music1.once('complete', () => {
+      currentSong = 2;
+      playNext(scene);
+    });
+  } else {
+    music2 = scene.sound.add('song2', {volume: 0.4});
+    music2.play();
+    music2.once('complete', () => {
+      currentSong = 1;
+      playNext(scene);
+    });
+  }
+}
+
+playMusic(this);
     }
+
+
   
     update() {
       const speed = 200;
