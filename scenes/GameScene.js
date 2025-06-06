@@ -511,6 +511,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    // console.log(basicMove);
     
     this.time.addEvent({
       delay,
@@ -523,7 +524,7 @@ if (basicMove.name === 'Razor Leaf') {
     basicMove.apply(this);
   }
 } else {
-  // basicMove.apply(this);
+  basicMove.apply(this);
 }
       }
     });
